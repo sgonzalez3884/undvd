@@ -1,6 +1,10 @@
-SHARED=/usr/share/undvd
-DOC=/usr/share/doc/undvd
-BIN=/usr/bin
+SHARED=/share/undvd
+DOC=/share/doc/undvd
+BIN=/bin
+
+ifndef DESTDIR
+	DESTDIR=/usr
+endif
 
 SHARED_CHROOT=${DESTDIR}${SHARED}
 DOC_CHROOT=${DESTDIR}${DOC}
@@ -31,7 +35,7 @@ install:
 	install -m644 Changelog ${DOC_CHROOT}
 
 	mkdir -p ${BIN_CHROOT}
-	ln -s ${SHARED}/encvid ${BIN_CHROOT}
-	ln -s ${SHARED}/scandvd ${BIN_CHROOT}
-	ln -s ${SHARED}/undvd ${BIN_CHROOT}
-	ln -s ${SHARED}/vidstat ${BIN_CHROOT}
+	ln -s ${SHARED_CHROOT}/encvid ${BIN_CHROOT}
+	ln -s ${SHARED_CHROOT}/scandvd ${BIN_CHROOT}
+	ln -s ${SHARED_CHROOT}/undvd ${BIN_CHROOT}
+	ln -s ${SHARED_CHROOT}/vidstat ${BIN_CHROOT}
