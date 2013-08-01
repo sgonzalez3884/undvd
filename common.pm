@@ -88,7 +88,7 @@ our $defaults = {
 my @videoutils = qw(mencoder mplayer);
 my @shellutils = qw(mount);
 my @coreutils = qw(dd);
-my @extravideoutils = qw(lsdvd mp4creator mkvmerge ogmmerge vobcopy);
+my @extravideoutils = qw(lsdvd mkvmerge ogmmerge vobcopy);
 
 my @mencoder_acodecs = qw(copy faac lavc mp3lame);
 my @mencoder_vcodecs = qw(copy lavc x264 xvid);
@@ -339,7 +339,6 @@ sub print_version {
 	check_tool("mencoder", "^MEncoder ([^ ]+)", qw(-oac help));
 	check_tool("lsdvd", "^lsdvd ([^ ]+)", qw(-V));
 	check_tool("vobcopy", "^Vobcopy ([^ ]+)", qw(--version));
-	check_tool("mp4creator", ".* version ([^ ]+)", qw(-version));
 	check_tool("mkvmerge", "^mkvmerge ([^ ]+)", qw(--version));
 	check_tool("ogmmerge", "^ogmmerge ([^ ]+)", qw(--version));
 	exit;
@@ -896,19 +895,19 @@ sub set_container_opts {
 	my @opts = ("avi");
 
 	if ($container =~ /(avi|mkv|ogm)/) {
-	} elsif ($container eq "mp4") {
-		$audio_codec = "aac";
-		$video_codec = "h264";
 	} else {
 
 		# use lavf muxing
-		if ($container =~ "(asf|au|dv|flv|ipod|mov|mpg|nut|rm|swf)") {
+		if ($container =~ "(asf|au|dv|flv|ipod|mov|mpg|mp4|nut|rm|swf)") {
 			$ext = $container;
 			@opts = ("lavf", "-lavfopts", "format=$container");
 
 			if ($container eq "flv") {
 				$audio_codec = "mp3";
 				$video_codec = "flv";
+			} elsif ($container eq "mp4") {
+				$audio_codec = "aac";
+				$video_codec = "h264";
 			}
 		} else {
 			fatal("Unrecognized container %%%$container%%%");
@@ -938,8 +937,17 @@ sub set_acodec_opts {
 		$bitrate = 160;
 		unshift(@opts, "mp3lame", "-lameopts", "vbr=3:abr=$bitrate:q=3");
 	} elsif ($codec eq "aac") {
+		my($local_opt);
+
+		# mp4 container needs raw aac
+		if($container eq "mp4") {
+			$local_opt = "raw:";
+		} else {
+			$local_opt = "";
+		}
+
 		$bitrate = 192;
-		unshift(@opts, "faac", "-faacopts", "br=$bitrate:mpeg=4:object=2",
+		unshift(@opts, "faac", "-faacopts", "${local_opt}br=$bitrate:mpeg=4:object=2",
 			"-channels", "2");
 
 	# use lavc codec
@@ -964,7 +972,7 @@ sub set_acodec_opts {
 
 # get video codec options
 sub set_vcodec_opts {
-	my ($codec, $passes, $pass, $bitrate) = @_;
+	my ($container, $codec, $passes, $pass, $bitrate) = @_;
 
 	my @opts;
 	if ($codec eq "copy") {
@@ -1097,7 +1105,7 @@ sub run_encode {
 sub remux_container {
 	my ($root, $ext, $fps, $container, $acodec, $vcodec) = @_;
 
-	if ($container =~ /(mp4|mkv|ogm)/) {
+	if ($container =~ /(mkv|ogm)/) {
 
 		# Set logging
 
@@ -1127,25 +1135,7 @@ sub remux_container {
 
 		my $remux;
 
-		if ($container eq "mp4") {
-			$remux = sub {
-				my ($root, $container, $ext, $acodec, $vcodec) = @_;
-
-				my @args1 = ($tools->{mp4creator}, "-create", "$root.$acodec",
-					"$root.$container");
-				my @args2 = ($tools->{mp4creator}, "-create", "$root.$vcodec",
-					"-rate=$fps", "$root.$container");
-				my @args3 = ($tools->{mp4creator}, "-hint=1", "$root.$container");
-				my @args4 = ($tools->{mp4creator}, "-hint=2", "$root.$container");
-				my @args5 = ($tools->{mp4creator}, "-optimize", "$root.$container");
-
-				my @p = pre($root, $container, $ext, $acodec, $vcodec);
-				my @a = (@p, \@args1, \@args2, \@args3, \@args4, \@args5);
-				my ($exit) = run_agg(\@a, $logfile);
-				post($root, $ext, $acodec, $vcodec, $exit);
-				return ($exit);
-			};
-		} elsif ($container eq "mkv") {
+		if ($container eq "mkv") {
 			$remux = sub {
 				my ($root, $container, $ext, $acodec, $vcodec) = @_;
 
@@ -1153,8 +1143,8 @@ sub remux_container {
 					"$root.$ext");
 
 				my @a = (\@args);
-				my ($exit) = run_agg(\@a, $logfile);
-				unlink("$root.$ext") unless($exit != 0);
+				my $exit = run_agg(\@a, $logfile);
+				unlink("$root.$ext") unless ($exit != 0);
 				return ($exit);
 			};
 		} elsif ($container eq "ogm") {
@@ -1165,8 +1155,8 @@ sub remux_container {
 					"$root.$ext");
 
 				my @a = (\@args);
-				my ($out, $exit, $err) = run_agg(\@a, $logfile);
-				unlink("$root.$ext") unless($exit != 0);
+				my $exit = run_agg(\@a, $logfile);
+				unlink("$root.$ext") unless ($exit != 0);
 				return ($exit);
 			};
 		}

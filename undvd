@@ -293,7 +293,7 @@ foreach my $title_name (@titles) {
 	} else {
 
 		for (my $pass = 1; $pass <= $ntitle->{passes}; $pass++) {
-			my @vcodec_args = set_vcodec_opts($ntitle->{vformat},
+			my @vcodec_args = set_vcodec_opts($container, $ntitle->{vformat},
 				$ntitle->{passes}, $pass, $ntitle->{vbitrate});
 
 			my @args = (@startpos, @endpos);
