@@ -120,6 +120,7 @@ foreach my $file (@files) {
 		next;
 	}
 
+	my $title_prefix = ""; # Unused since we have a nice file name
 	my $title_name = $file;
 	$title_name =~ s/^(.*)\..*$/$1/g;
 
@@ -243,7 +244,7 @@ foreach my $file (@files) {
 			push(@args, "-ovc", @vcodec_args);
 			push(@args, "-of", @cont_args);
 
-			run_encode(\@args, $file, $title_name, $ext, $ntitle->{length},
+			run_encode(\@args, $file, $title_prefix, $title_name, $ext, $ntitle->{length},
 				$ntitle->{passes}, $pass);
 		}
 
@@ -255,7 +256,7 @@ foreach my $file (@files) {
 			unlink("divx2pass.log");
 		}
 
-		remux_container($title_name, $ext, $ntitle->{fps}, $container,
+		remux_container($title_prefix, $title_name, $ext, $ntitle->{fps}, $container,
 			$ntitle->{aformat}, $ntitle->{vformat});
 
 	}

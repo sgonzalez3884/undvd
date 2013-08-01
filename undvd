@@ -21,6 +21,7 @@ my $usage = "Usage:  " . s_b($suite->{tool_name}) . " "
 	. "[" . s_b("-d") . " " . s_bb($defaults->{dvd_device}) . "]"
 	. " [" . s_b("more options") . "]\n
   -t --title    title(s) to rip (comma separated)
+  -p --prefix   Prefix to append to all output files
   -a --audio    audio language (two letter code, eg. " . s_bb("en") . ", or integer id)
   -s --subs     subtitle language (two letter code or " . s_bb("off") . ", or integer id)\n
   -d --dev      dvd device to rip from (default is " .  s_bb($defaults->{dvd_device}) . ")
@@ -49,7 +50,7 @@ my $adv_usage = "Advanced usage:  " . s_b($suite->{tool_name}) . " "
      --acodec   set audio codec
      --vcodec   set video codec\n";
 
-my (@titles, $alang, $dvd_is_dir, $dvd_is_iso, $encrypted);
+my (@titles, $title_prefix, $alang, $dvd_is_dir, $dvd_is_iso, $encrypted);
 my ($opts_start, $opts_end, $target_size, $bpp, $autocrop);
 my ($dry_run, $opts_acodec, $opts_vcodec, $opts_cont);
 
@@ -64,6 +65,7 @@ my $postscale = $defaults->{postscale};
 
 my $parse = GetOptions(
 	"t|titles=s"=> sub { @titles = split(",", $_[1]); },
+	"p|prefix=s"=>\$title_prefix,
 	"a|audio=s"=>\$alang,
 	"s|subs=s"=>\$slang,
 
@@ -304,19 +306,19 @@ foreach my $title_name (@titles) {
 			push(@args, "-of", @cont_args);
 			push(@args, "-dvd-device", $mencoder_source);
 
-			run_encode(\@args, "dvd://$title_name", $title_name, $ext,
+			run_encode(\@args, "dvd://$title_name", $title_prefix, $title_name, $ext,
 				$ntitle->{length}, $ntitle->{passes}, $pass);
 		}
 
-		if (-f "$title_name.$ext.partial") {
-			rename("$title_name.$ext.partial", "$title_name.$ext");
+		if (-f "$title_prefix$title_name.$ext.partial") {
+			rename("$title_prefix$title_name.$ext.partial", "$title_prefix$title_name.$ext");
 		}
 
 		if (-f "divx2pass.log") {
 			unlink("divx2pass.log");
 		}
 
-		remux_container($title_name, $ext, $ntitle->{fps}, $container,
+		remux_container($title_prefix, $title_name, $ext, $ntitle->{fps}, $container,
 			$ntitle->{aformat}, $ntitle->{vformat});
 
 	}

@@ -1030,12 +1030,12 @@ sub set_vcodec_opts {
 
 # run encode and print updates
 sub run_encode {
-	my ($args, $file, $title_name, $ext, $length, $passes, $pass) = @_;
+	my ($args, $file, $title_prefix, $title_name, $ext, $length, $passes, $pass) = @_;
 
 	# Set output and logging depending on number of passes
 
-	my $output_file = "$title_name.$ext.partial";
-	my $base = basename($title_name);
+	my $output_file = "$title_prefix$title_name.$ext.partial";
+	my $base = basename($title_prefix . $title_name);
 	my $logfile = $defaults->{logdir}."/$base.log";
 
 	if ($passes > 1) {
@@ -1103,13 +1103,13 @@ sub run_encode {
 
 # run remux and print updates
 sub remux_container {
-	my ($root, $ext, $fps, $container, $acodec, $vcodec) = @_;
+	my ($prefix, $root, $ext, $fps, $container, $acodec, $vcodec) = @_;
 
 	if ($container =~ /(mkv|ogm)/) {
 
 		# Set logging
 
-		my $base = basename($root);
+		my $base = basename($prefix.$root);
 		my $logfile = $defaults->{logdir} . "/$base.remuxlog";
 
 		sub pre {
