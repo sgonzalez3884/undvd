@@ -1,0 +1,142 @@
+# Generated with codectest (time: 9min)
+
+Tools detected:
++ mencoder 2:1.0~rc2-0ubuntu13
++ mkvmerge v2.0.2
++ mp4creator 1.6
++ mplayer 1.0rc2-4.2.3
++ ogmmerge v1.5
++ undvd 0.7.0
+
++-------------+-------------+-------------+-------------+
+| container   | vcodec      | acodec      | status      |
++-------------+-------------+-------------+-------------+
+| asf         | flv         | aac         | ok          |
+| asf         | flv         | ac3         | ok          |
+| asf         | flv         | mp3         | ok          |
+| asf         | flv         | vorbis      | ok          |
+| asf         | h264        | aac         | ok          |
+| asf         | h264        | ac3         | ok          |
+| asf         | h264        | mp3         | ok          |
+| asf         | h264        | vorbis      | ok          |
+| asf         | mpeg4       | aac         | ok          |
+| asf         | mpeg4       | ac3         | ok          |
+| asf         | mpeg4       | mp3         | ok          |
+| asf         | mpeg4       | vorbis      | ok          |
+| asf         | xvid        | aac         | play_failed |
+| asf         | xvid        | ac3         | ok          |
+| asf         | xvid        | mp3         | ok          |
+| asf         | xvid        | vorbis      | ok          |
+| avi         | flv         | aac         | ok          |
+| avi         | flv         | ac3         | ok          |
+| avi         | flv         | mp3         | ok          |
+| avi         | flv         | vorbis      | ok          |
+| avi         | h264        | aac         | ok          |
+| avi         | h264        | ac3         | ok          |
+| avi         | h264        | mp3         | ok          |
+| avi         | h264        | vorbis      | ok          |
+| avi         | mpeg4       | aac         | ok          |
+| avi         | mpeg4       | ac3         | ok          |
+| avi         | mpeg4       | mp3         | ok          |
+| avi         | mpeg4       | vorbis      | ok          |
+| avi         | xvid        | aac         | ok          |
+| avi         | xvid        | ac3         | ok          |
+| avi         | xvid        | mp3         | ok          |
+| avi         | xvid        | vorbis      | ok          |
+| flv         | flv         | aac         | enc_failed  |
+| flv         | flv         | ac3         | enc_failed  |
+| flv         | flv         | mp3         | ok          |
+| flv         | flv         | vorbis      | enc_failed  |
+| flv         | h264        | aac         | enc_failed  |
+| flv         | h264        | ac3         | enc_failed  |
+| flv         | h264        | mp3         | enc_failed  |
+| flv         | h264        | vorbis      | enc_failed  |
+| flv         | mpeg4       | aac         | enc_failed  |
+| flv         | mpeg4       | ac3         | enc_failed  |
+| flv         | mpeg4       | mp3         | enc_failed  |
+| flv         | mpeg4       | vorbis      | enc_failed  |
+| flv         | xvid        | aac         | enc_failed  |
+| flv         | xvid        | ac3         | enc_failed  |
+| flv         | xvid        | mp3         | enc_failed  |
+| flv         | xvid        | vorbis      | enc_failed  |
+| mkv         | flv         | aac         | ok          |
+| mkv         | flv         | ac3         | ok          |
+| mkv         | flv         | mp3         | ok          |
+| mkv         | flv         | vorbis      | ok          |
+| mkv         | h264        | aac         | ok          |
+| mkv         | h264        | ac3         | ok          |
+| mkv         | h264        | mp3         | ok          |
+| mkv         | h264        | vorbis      | ok          |
+| mkv         | mpeg4       | aac         | ok          |
+| mkv         | mpeg4       | ac3         | ok          |
+| mkv         | mpeg4       | mp3         | ok          |
+| mkv         | mpeg4       | vorbis      | ok          |
+| mkv         | xvid        | aac         | ok          |
+| mkv         | xvid        | ac3         | ok          |
+| mkv         | xvid        | mp3         | ok          |
+| mkv         | xvid        | vorbis      | ok          |
+| mov         | flv         | aac         | ok          |
+| mov         | flv         | ac3         | ok          |
+| mov         | flv         | mp3         | ok          |
+| mov         | flv         | vorbis      | ok          |
+| mov         | h264        | aac         | ok          |
+| mov         | h264        | ac3         | ok          |
+| mov         | h264        | mp3         | ok          |
+| mov         | h264        | vorbis      | ok          |
+| mov         | mpeg4       | aac         | ok          |
+| mov         | mpeg4       | ac3         | ok          |
+| mov         | mpeg4       | mp3         | ok          |
+| mov         | mpeg4       | vorbis      | ok          |
+| mov         | xvid        | aac         | ok          |
+| mov         | xvid        | ac3         | ok          |
+| mov         | xvid        | mp3         | ok          |
+| mov         | xvid        | vorbis      | ok          |
+| mp4         | flv         | aac         | ok          |
+| mp4         | flv         | ac3         | ok          |
+| mp4         | flv         | mp3         | ok          |
+| mp4         | flv         | vorbis      | ok          |
+| mp4         | h264        | aac         | ok          |
+| mp4         | h264        | ac3         | ok          |
+| mp4         | h264        | mp3         | ok          |
+| mp4         | h264        | vorbis      | ok          |
+| mp4         | mpeg4       | aac         | ok          |
+| mp4         | mpeg4       | ac3         | ok          |
+| mp4         | mpeg4       | mp3         | ok          |
+| mp4         | mpeg4       | vorbis      | ok          |
+| mp4         | xvid        | aac         | ok          |
+| mp4         | xvid        | ac3         | ok          |
+| mp4         | xvid        | mp3         | ok          |
+| mp4         | xvid        | vorbis      | ok          |
+| nut         | flv         | aac         | ok          |
+| nut         | flv         | ac3         | ok          |
+| nut         | flv         | mp3         | ok          |
+| nut         | flv         | vorbis      | ok          |
+| nut         | h264        | aac         | ok          |
+| nut         | h264        | ac3         | ok          |
+| nut         | h264        | mp3         | ok          |
+| nut         | h264        | vorbis      | ok          |
+| nut         | mpeg4       | aac         | ok          |
+| nut         | mpeg4       | ac3         | ok          |
+| nut         | mpeg4       | mp3         | ok          |
+| nut         | mpeg4       | vorbis      | ok          |
+| nut         | xvid        | aac         | ok          |
+| nut         | xvid        | ac3         | ok          |
+| nut         | xvid        | mp3         | ok          |
+| nut         | xvid        | vorbis      | ok          |
+| ogm         | flv         | aac         | ok          |
+| ogm         | flv         | ac3         | ok          |
+| ogm         | flv         | mp3         | ok          |
+| ogm         | flv         | vorbis      | ok          |
+| ogm         | h264        | aac         | ok          |
+| ogm         | h264        | ac3         | ok          |
+| ogm         | h264        | mp3         | ok          |
+| ogm         | h264        | vorbis      | ok          |
+| ogm         | mpeg4       | aac         | ok          |
+| ogm         | mpeg4       | ac3         | ok          |
+| ogm         | mpeg4       | mp3         | ok          |
+| ogm         | mpeg4       | vorbis      | ok          |
+| ogm         | xvid        | aac         | ok          |
+| ogm         | xvid        | ac3         | ok          |
+| ogm         | xvid        | mp3         | ok          |
+| ogm         | xvid        | vorbis      | ok          |
++-------------+-------------+-------------+-------------+

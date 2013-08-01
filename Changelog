@@ -1,0 +1,124 @@
+0.7.5:
+* Fix: Ignore invalid dvd device when ripping from iso or directory.
+
+0.7.4:
+* Fix: Audio and subtitle settings missing.
+
+0.7.3:
+* Fix: Divide by zero bug.
+* Fix: File size estimate.
+* Fix: File not found on dvd scan with vidstat.
+
+0.7.2:
+* Reclassify lsdvd as soft dependency, can now use scandvd without it.
+* vidstat: compute bitrate if possible.
+* Fix outpug bug on cygwin.
+
+0.7.1:
+* Posix compatibility. Tested on FreeBSD, Solaris, OS X, Cygwin.
+
+0.7.0:
+* Port to perl. Speed boost all around, especially in scandvd.
+* Internalize all unncessary external calls, remove unneeded dependencies.
+* Add time estimate on crop detection.
+* Omit disc cloning by default.
+* Fix: Output the right file extension in dry run mode.
+* Fix: Correct subtitle id numbers.
+
+0.6.1:
+* Validate user input.
+* New --bpp option.
+* Setting x:y scaling now allows breaking the original aspect ratio.
+* Add more exotic codecs.
+* Add full codectest report with all codecs and containers.
+
+0.6.0:
+* New encvid tool for general purpose encoding/conversion.
+* Add --version and --adv options.
+
+0.5.2:
+* New codectest tool.
+* Add --start and --version options.
+* Add more codecs and containers.
+
+0.5.1:
+* Add support for ogm container and more containers and codecs based on lavc.
+* Fix parsing bugs on filenames with quotes, slashes and other special
+characters.
+* Use exit code 2 on bad usage.
+
+0.5.0:
+* Support for selecting container format and audio/video codecs.
+* Add audio codec and bitrate detection in vidstat.
+
+0.4.4:
+* Add support for printing and selecting audio and subtitle numeric ids.
+* Add long options to clarify usage.
+* Check that $TERM is sent before outputting shell escapes.
+
+0.4.3:
+* Make subtitle selection optional (off by default).
+* Fix unpredictable behavior when both -n and -i or -q are set.
+* Fix cryptic bug when dvd device is set incorrectly.
+* Fix bug that occurs when crop detection fails. New behavior is to halt.
+
+0.4.2:
+* New switch -c enables autocropping.
+* Get rid of .sh suffix for executable scripts.
+* Fix long suspected misbehavior due to non deterministic option parsing.
+* Add packaging option: publish to ubuntu ppa.
+
+0.4.1:
+* Smarter scaling based on a sensible constant for the number of pixels in a
+frame of video instead of constant scaling along the width.
+* Scaling enforces a target framesize of an even number of 16x16 pixel blocks.
+* Make vidstat more resistant to bad input from video files and omit output of
+unknown values.
+
+0.4.0:
+* Bitrate is now set dynamically based on bpp.
+* New dry-run option -D for undvd to examine encoding parameters.
+* New tool vidstat to examine video files or dvds.
+
+0.3.3:
+* Add option for disabling picture scaling, also clarify this in the userguide.
+* undvd no longer needs to write temporary files to /tmp.
+
+0.3.2:
+* Fix problem with color output on black-on-white terminals.
+* Clarify usage for scandvd.
+* Use flag check in ebuild would halt emerge prematurely, fixed.
+
+0.3.1:
+* Adding support for vobcopy to clone encrypted dvds. undvd.sh now accepts 
+the -u flag to clone a dvd to disk that otherwise doesn't let itself be copied.
+
+0.3.0:
+* User set bitrate. Bitrate can now be set implicitly by setting an output 
+filesize for the video with the -o switch.
+* 2-pass encoding. 2-pass encoding is done automatically if the bitrate is set
+below the default. But 1-pass or 2-pass encoding can always be overriden by 
+using -1 and -2.
+* New option to prevent disc cloning before encoding. The -n switch can now 
+be used to skip copying the dvd to the harddrive first, before encoding begins. 
+Useful when low on disk space.
+* New system sanity check. undvd can now check for all programs it needs by 
+supplying the -c switch. It also checks for codec support.
+
+0.2.2:
+* New install script. While there was no official way of "installing" undvd 
+there is now a makefile with an "install" target, therefore "make install" 
+will deploy the files into the filesystem.
+* Distribution specific packages:
++ gentoo ebuild
++ ubuntu .deb
++ fedora .rpm
+These are all brand new and not well tested.
+
+0.2.1:
+Fixed a bug related to the -i switch in undvd. Also added the -i switch in 
+scandvd, so they now have the same options for source selection.
+
+0.2.0:
+Clarified some of the command line options a bit, added elapsed time. Also 
+added a note about the xine playback bug in the user guide.

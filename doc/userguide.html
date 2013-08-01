@@ -1,0 +1,369 @@
+<html>
+<head>
+<title>undvd user guide</title>
+<style type="text/css">
+body, td {
+font-family: DejaVu Sans, Bitstream Vera Sans, Verdana;
+font-size: 10pt; }
+
+h2 {
+font-size: 140%;
+padding: 3px;
+background-color: #ed7; }
+
+h3 {
+font-size: 125%; }
+
+table {
+margin: 1px; }
+
+table, td {
+font-family: DejaVu Sans Mono, Bitstream Vera Sans Mono, Monospace;
+padding: 0px 10px 0px 10px; }
+
+dt {
+font-weight: bold; }
+
+dd {
+padding-bottom: 5px; }
+
+c {
+font-family: DejaVu Sans Mono, Bitstream Vera Sans Mono, Monospace;
+font-weight: bold;
+color: navy; }
+
+code {
+font-family: DejaVu Sans Mono, Bitstream Vera Sans Mono, Monospace;
+font-weight: bold;
+color: navy;
+background-color: #eeb;
+border: 1px dotted #aaa;
+padding: 4px;
+margin: 3px; }
+
+e {
+font-style: italic; }
+
+h {
+font-weight: bold;
+color: green; }
+
+n {
+font-size: 80%;
+font-weight: bold;
+color: navy;
+padding-left: 2px;
+vertical-align: text-top; }
+</style>
+</head>
+
+<body>
+<h1>undvd user guide</h1>
+
+<p>Most dvd rippers give you so many options and settings that it takes 45 minutes to set it up before you can start ripping, and you're still not sure if you chose the right settings. undvd is based on the principle of <e>sensible defaults</e> - it makes those decisions for you, making ripping dvds easy.</p>
+
+<p>A dvd consists of a number of <e>titles</e> (videos), each of which can have several <e>audio tracks</e> and <e>subtitles</e>. When ripping, you have to select which of each to use. Unfortunately, titles on a dvd don't contain any names that would suggest what they are (the movie? a trailer? director's cut?), and so they computer doesn't know. But you can probably figure out what is what by looking at the lenght of the title.</p>
+
+
+<h2>Quick start</h2>
+
+<ol>
+<li>Run <c>scandvd</c> to list all the titles on the disc.
+<li>If in doubt about what the titles are, play with mplayer: <c>mplayer dvd://01</c>
+<li>Run <c>undvd -t <h>01</h> -a <h>en</h> -s <h>es</h></c> to rip only the <e>first</e> title, with <e>English</e> audio and <e>Spanish</e> subtitles.
+</ol>
+
+
+<h2>Prerequisites</h2>
+undvd depends on a few programs to run, so make sure you have these. These are standard linux tools found on every system:
+<ul>
+<li><a href="http://www.gnu.org/software/coreutils/">coreutils</a>
+<li><a href="http://www.perl.org/">perl</a> 5.8.8
+<li><a href="http://www.kernel.org/pub/linux/utils/util-linux/">util-linux</a>
+</ul>
+And these are special video tools we need:
+<ul>
+<li><a href="http://www.videolan.org/developers/libdvdcss.html">libdvdcss</a> (optional, but necessary to read encrypted dvds)
+<li><a href="http://untrepid.com/lsdvd/">lsdvd</a> (optional, speeds up dvd scans)
+<li><a href="http://www.mplayerhq.hu/">mplayer</a> with mencoder and support for
+	<ul>
+	<li><a href="http://www.dtek.chalmers.se/groups/dvd/">dvd</a>
+	<li><a href="http://lame.sourceforge.net">mp3</a>
+	<li><a href="http://developers.videolan.org/x264.html">x264</a>
+	<li><a href="http://sourceforge.net/projects/faac/">aac</a> (optional)
+	<li><a href="http://www.xvid.org">xvid</a> (optional)
+	</ul>
+<li><a href="http://www.bunkus.org/videotools/mkvtoolnix/">mkvtoolnix</a> (optional)
+<li><a href="http://mpeg4ip.sourceforge.net/">mpeg4ip</a> (optional)
+<li><a href="http://www.bunkus.org/videotools/ogmtools/">ogmtools</a> (optional)
+<li><a href="http://lpn.rnbhq.org/">vobcopy</a> (optional)
+</ul>
+
+
+<h2>Diving in</h2>
+
+<h3>Find out which title(s) to rip</h3>
+
+<p><c>scandvd</c> uses <e>lsdvd</e> to print a list of titles on the disc. Each line in the output looks like this:</p>
+
+<table><tr>
+<td>03</td>
+<td><c>length:</c> <h>00:22:06</h></td>
+<td><c>audio:</c> en es</td>
+<td><c>subtitles:</c> en es nl</td>
+</tr></table>
+
+<p>This particular title has two audio tracks and three subtitles. You can also tell <c>scandvd</c> which device to scan:</p>
+
+<code>scandvd --dev <h>/dev/dvd</h></code>
+
+<p>Or, if you already have the dvd mounted, you can give it a path:</p>
+
+<code>scandvd --dir <h>/path</h></code>
+
+<p>Or, if you have an iso image you want to rip from:</p>
+
+<code>scandvd --iso <h>disc.iso</h></code>
+
+
+<h3>Rip titles</h3>
+
+<p>Once you know which titles to rip, run <c>undvd</c>, where the first argument is the title(s), the second is the audio, the third is the subtitles (the rest are optional):</p>
+
+<p><c>undvd -t <h>01,02,03</h> -a <h>en</h> -s <h>es</h> [-e <h>200</h>] [-d <h>/dev/dvd</h>] [more options]</c></p>
+
+<table>
+<tr><td><c>-t --title<c></td><td>title(s) to rip (comma separated)</td></tr>
+<tr><td><c>-a --audio<c></td><td>audio language (two letter code, eg.  <h>en</h>, or integer id)</td></tr>
+<tr><td><c>-s --subs<c></td><td>subtitle language (two letter code or <h>off</h>, or integer id)</td></tr>
+<tr><td><c>-d --dev<c></td><td>dvd device to rip from (default is <h>/dev/dvd</h>)</td></tr>
+<tr><td><c>-q --dir<c></td><td>dvd directory to rip from</td></tr>
+<tr><td><c>-i --iso<c></td><td>dvd iso image to rip from</td></tr>
+<tr><td><c>--start<c></td><td>start after this many seconds (usually for testing)</td></tr>
+<tr><td><c>-e --end<c></td><td>end after this many seconds after start (usually for testing)</td></tr>
+<tr><td><c>-C<c></td><td>do sanity check (check for missing tools)</td></tr>
+<tr><td><c>-z<c></td><td>&lt;show advanced options&gt;</td></tr>
+<tr><td><c>--version<c></td><td>show undvd version</td></tr>
+</table>
+
+<p>So to rip the <i>first</i> title with <i>English</i> audio and no subtitles from a dvd (assuming your dvd device is called /dev/dvd) you would run:</p>
+
+<code>undvd -t <h>01</h> -a <h>en</h> -s <h>off</h> -d <h>/dev/dvd</h></code>
+
+<p>Normally, you omit the <c>-e</c> parameter, but it's useful if you want to just rip a small part of the title to see that it works and that it looks good.</p>
+
+<p><c>undvd</c> first copies the entire disc to the harddisk with <e>dd</e>. It then encodes the title(s) with <e>mencoder</e>, part of <e>mplayer</e>. The output format uses <a href="http://en.wikipedia.org/wiki/H264">h264</a> compression (optionally xvid) for the video and mp3 for the audio.</p>
+
+
+<h3>Advanced options</h3>
+
+The above options are sufficient to get a good quality rip, but if you need more control over the process, there are some extra options you can set.
+
+<p><c>undvd -t <h>01,02,03</h> -a <h>en</h> -s <h>es</h> [-e <h>200</h>] [-d <h>/dev/dvd</h>] [more options]</c></p>
+
+<table>
+<tr><td><c>-o --size<c></td><td>output file size in mb (integer value)</td></tr>
+<tr><td><c>--bpp<c></td><td>bits per pixel (float value)</td></tr>
+<tr><td><c>-1<c></td><td>force 1-pass encoding</td></tr>
+<tr><td><c>-2<c></td><td>force 2-pass encoding</td></tr>
+<tr><td><c>--clone<c></td><td>clone dvd to iso image before encoding</td></tr>
+<tr><td><c>--clone-x<c></td><td>clone encrypted dvd to directory with vobcopy</td></tr>
+<tr><td><c>-c --crop<c></td><td>autocrop video</td></tr>
+<tr><td><c>-r --scale<c></td><td>scale video to x:y (integer value or <h>0</h>) or <h>off</h> to disable</td></tr>
+<tr><td><c>-f --smooth<c></td><td>use picture smoothing filter (not recommended for top quality source content)</td></tr>
+<tr><td><c>-D --dryrun<c></td><td>dry run (display encoding parameters without encoding)</td></tr>
+<tr><td><c>--cont<c></td><td>set container format</td></tr>
+<tr><td><c>--acodec<c></td><td>set audio codec</td></tr>
+<tr><td><c>--vcodec<c></td><td>set video codec</td></tr>
+</table>
+
+
+<h2>Encoding videos with encvid</h2>
+
+<p>Although undvd was designed to be a dvd ripping tool, it has evolved the
+ability to encode any other video files as well. The tool <c>encvid</c>
+accepts the same options as <c>undvd</c> (those that are not specific to
+dvds) and behaves just the same way (there
+is one difference, <c>encvid</c> does not scale the video by default).</p>
+
+<p>To convert a file video.avi from avi to mp4, you would run:</p>
+
+<code>encvid <h>video.avi</h> --cont <h>mp4</h></code>
+
+
+<h2>How long does it take?</h2>
+
+<p>This depends mostly on your cpu. Copying the dvd to disk can take about <e>10-15 minutes</e>. Encoding the video can take about <e>2-5 minutes per minute of video</e> (so for a 2 hour movie - 4h-10h).</p>
+
+<p><c>undvd</c> uses <e>mencoder</e>'s estimate to give you an idea of how long it takes. For every title it displays progress like this:</p>
+
+<table>
+<tr>
+<td colspan=7>&nbsp;* Now ripping title <h>01</h>, with audio <h>en</h> and subtitles <h>off</h></td>
+</tr>
+<tr>
+<td>[-] Encoding</td>
+<td><h>3%</h></td>
+<td>54s</td>
+<td><h>13fps</h></td>
+<td>277mb</td>
+<td><h>+101min</h></td>
+<td><h>-44min</h></td>
+</tr>
+</table>
+
+<p>Here track <e>01</e> is being ripped. At this point, 54 seconds of video
+have been processed, which is 3% of the title. The current rate is 13
+frames/second (normally there are about 25 fps in a movie), it has been
+running for <e>101</e> minutes and the time remaining is estimated to 44
+minutes. The output file is estimated at 277mb.</p>
+
+<p><b>Note:</b> <c>undvd</c> runs at the lowest priority, so it should not interfere with use of your computer, it just runs in the background. (The less you use computer the faster it will run :-)</p>
+
+
+<h2>Codecs and containers</h2>
+
+A number of other containers and codecs are available aside from the default
+(avi+mp3+h264). These are optional dependencies.
+
+<p><b>Note:</b> While the default container/codec combination is quite well
+tested, the other options have not been. Certain combinations may be ill
+advised, but <c>undvd</c> does not attempt to identify them. Use these options cautiously, in particular be careful about <e>audio/video
+sync.</e></p>
+
+<p><b>Note:</b> Codecs supported through <e>ffmpeg/lavc</e> are not detected by
+<c>undvd</c> as they are not exposed to <e>mencoder</e>. Unavailable
+codecs will cause encoding to fail.
+
+<ul>
+<li>Supported containers:
+	<ul>
+	<li>asf<n>1</n>
+	<li>avi (default)
+	<li>flv<n>1</n>
+	<li>mkv<n>2</n>
+	<li>mov<n>1</n>
+	<li>mp4<n>2</n>
+	<li>nut<n>1</n>
+	<li>ogm<n>2</n>
+	</ul>
+<li>Supported audio codecs:
+	<ul>
+	<li>copy (copy source track, no encoding)
+	<li>aac
+	<li>ac3<n>1</n>
+	<li>mp3 (default)
+	<li>vorbis<n>1</n>
+	</ul>
+<li>Supported video codecs:
+	<ul>
+	<li>copy (copy source track, no encoding)
+	<li>flv<n>1</n>
+	<li>h264 (default)
+	<li>mpeg4<n>1</n>
+	<li>xvid
+	</ul>
+</ul>
+
+<n>1</n> These codecs and containers are supported through <e>lavc</e> and are
+not recommended.  </br/>
+
+<n>2</n> These containers are supported through standalone
+additional tools and typically work more reliably than <e>lavc</e>.
+
+<p>Certain combinations of codecs will be rejected by some containers. To find
+out which combinations work, there is a helper script <e>codectest</e> that
+runs <e>undvd</e> on the whole range of combinations and generates a report.
+<e>undvd</e> comes with a pre-generated report of the most common formats,
+which you can find <a href="codectest.txt">in text format (txt)</a> or <a
+	href="codectest.svg">image format (svg)</a>. You can also generate it on your
+own system to see what combinations work. There is also a comprehensive report
+with all codecs recognized by undvd [<a href="codectest_all.svg">svg</a>|<a
+	href="codectest_all.txt">txt</a>].
+</p>
+
+<p><b>Note:</b> The successful encoding of a certain combination of container
+and codecs with <e>codectest</e> simply means that a file was created
+successfully. It does *not* verify that the video was created correctly or that
+it will be playable in other media players.</p>
+
+
+<h2>Problems?</h2>
+
+<dl>
+<dt>Q. How do I make a high quality rip without down scaling the image?
+<dd>A. By default, undvd scales the image to 2/3 of the original dimensions,
+in order to produce a reasonable file size without sacrificing quality. Even
+though video players scale the image to fullscreen, the quality typically
+remains high. You can override the scaling by setting <c>-r off</c>, which will preserve the original video dimensions. The file will be proportionally larger.
+
+<dt>Q. I still don't understand how scaling works.
+<dd>A. To scale the video you set the <c>-r</r> option with a pair of numbers,
+eg. <c>-r 480:384</c>. You can also omit the height (<c>-r 480:0</c>) or the
+width (<c>-r 0:384</c>). undvd will scale your given dimensions to the closest
+multiples of 16 (as required by most video codecs). Setting <c>-r off</c> disables scaling altogether.
+
+<dt>Q. When I preview a file in progress, the video is out of sync with the audio.
+<dd>A. Wait until it's finished, then it should be fine. You can also consider
+using a different container and/or audio codec.
+
+<dt>Q. undvd fails when reading from the dvd.
+<dd>A. This could be because the dvd is encrypted. To read encrypted dvds you
+need libdvdcss. mplayer/mencoder will use it automatically if it is installed, and you can run without cloning the disc (<c>-n</c>). Otherwise you'll need to set <c>-u</c> so that undvd knows to use vobcopy (which also supports libdvdcss) instead of dd when cloning this disc.
+
+<dt>Q. What is the difference between h264 and xvid encoding?
+<dd>A. Xvid can be up to 30% faster, and produces very good results when the source video isn't that high quality (eg. remastered old tv-shows). But for movies of top quality, the picture is better with h264.
+
+<dt>Q. What's the picture smoothing filter?
+<dd>A. Source content with certain imperfections tends to look better smoothed before encoded. The filter slows down encoding, so you might want to rip a small part of the video first to see if it's worth it.
+
+<dt>Q. When I play the movie in xine/totem/kaffeine I see patches of green color.
+<dd>A. This is a known bug in xine. See <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1754446&group_id=9655&atid=109655">this bug</a>.
+</dl>
+
+
+<h2>Development notes</h2>
+This user guide contains the necessary information concerning use of the
+program. It is meant to be fairly short, so as not to drown the user in
+volumes of text. Nevertheless, an effort is made to capture information about development,
+motivation, design decisions and future goals on a blog.
+<ol>
+<li><a href="http://www.matusiak.eu/numerodix/blog/index.php/2007/01/30/undvd-dvd-ripping-made-easy/">Motivation for undvd</a>
+<li><a href="http://www.matusiak.eu/numerodix/blog/index.php/2007/12/11/undvd-looking-ahead-and-back/">Design decisions and behavior</a>
+<li><a href="http://www.matusiak.eu/numerodix/blog/index.php/2008/03/04/undvd-gets-dynamic-bitrate/">Bpp, dynamic bitrate and vidstat</a>
+<li><a href="http://www.matusiak.eu/numerodix/blog/index.php/2008/03/09/undvd-gets-smarter-scaling/">Smarter scaling</a>
+<li><a href="http://www.matusiak.eu/numerodix/blog/index.php/2008/09/08/of-codecs-and-containers/">Codecs and containers</a>
+<li><a href="http://www.matusiak.eu/numerodix/blog/index.php/2008/09/11/how-to-pick-a-codec/">How to pick a codec</a>
+<li><a href="http://www.matusiak.eu/numerodix/blog/index.php/2008/09/18/general-purpose-video-conversion-has-arrived/">Introducing general purpose encoding</a>
+<li><a href="http://www.matusiak.eu/numerodix/blog/index.php/2008/10/05/undvd-now-in-perl/">undvd ported to Perl</a>
+<li><a href="http://www.matusiak.eu/numerodix/blog/index.php/2008/10/09/update-on-undvd-packages/">Where to find undvd packages for your system</a>
+</ol>
+
+
+<h2>Technical reference (the hairy details)</h2>
+<ul>
+<li>mencoder general resources
+	<ol>
+	<li><a href="http://gentoo-wiki.com/HOWTO_Rip_DVD_mencoder">HOWTO Rip DVD mencoder [gentoo-wiki]</a>
+	</ol>
+
+<li>h264 info
+	<ol>
+	<li><a href="http://www.mplayerhq.hu/DOCS/HTML/en/menc-feat-quicktime-7.html">Using MEncoder to create QuickTime-compatible files [mplayerhq]</a>
+	<li><a href="http://www.softlab.ntua.gr/~ttsiod/x264.html">MPEG-2 (DVD) transcoding to H.264 under UNIX</a>
+	</ol>
+
+<li>xvid info
+	<ol>
+	<li><a href="http://gentoo-wiki.com/HOWTO_Mencoder_Introduction_Guide#XviD">HOWTO Mencoder Introduction Guide [gentoo-wiki]</a>
+	<li><a href="http://www.mplayerhq.hu/DOCS/HTML/en/menc-feat-xvid.html">Encoding with the Xvid  codec [mplayerhq]</a>
+	</ol>
+</ul>
+
+
+<hr>
+# Author: Martin Matusiak &lt;numerodix@gmail.com&gt;
+<br># Licensed under the GNU Public License, version 3.
+
+</body>
+</html>

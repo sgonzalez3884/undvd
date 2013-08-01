@@ -1,0 +1,77 @@
+#!/usr/bin/perl
+#
+# Author: Martin Matusiak <numerodix@gmail.com>
+# Licensed under the GNU Public License, version 3.
+
+use strict;
+use Getopt::Long qw(:config no_ignore_case);
+
+use FindBin qw($RealBin);
+use lib $RealBin;
+use colors;
+use common qw(:DEFAULT $suite $defaults $tools);
+
+
+my $usage = "Usage:  "   . s_b($suite->{tool_name})   . " ["
+	. s_b("--dev") . " " . s_bb($defaults->{dvd_device}) . " | "
+	. s_b("--dir") . " " . s_bb("/path")    . " | "
+	. s_b("--iso") . " " . s_bb($defaults->{disc_image}) . "]
+  -d --dev      dvd device to read from (default is " .  s_bb($defaults->{dvd_device}) . ")
+  -q --dir      dvd directory to read from
+  -i --iso      dvd iso image to read from
+  -v            be verbose (print id numbers)
+     --version  show " . $suite->{suite_name} . " version\n";
+
+my ($verbose);
+my $dvd_device = $defaults->{dvd_device};
+my $parse = GetOptions(
+	"d|dev=s"=>\$dvd_device,
+	"q|dir=s"=>\$dvd_device,
+	"i|iso=s"=>\$dvd_device,
+	"v"=>\$verbose,
+	"version"=>\&print_version,
+);
+
+print_tool_banner();
+
+if (! $parse) {
+	print $usage;
+	exit 2;
+}
+
+my @titles = scan_dvd_for_titledata($dvd_device);
+
+
+foreach my $title (@titles) {
+	my ($title_s, $length, @aids, @alangs, @sids, @slangs);
+
+	my $audio = "";
+	for (my $i = 0; $i < scalar @{ $title->{aids} }; $i++) {
+		if ($i == 0) { $audio = "  audio: "; }
+		$audio .= s_bb(@{ $title->{alangs} }[$i]) . " ";
+		if ($verbose) { $audio .= s_it(@{ $title->{aids} }[$i]) . " "; }
+	}
+	$audio =~ s/\s*$//;
+
+	my $subs = "";
+	for (my $i = 0; $i < scalar @{ $title->{sids} }; $i++) {
+		if ($i == 0) { $subs = "  subs: "; }
+		$subs .= s_bb(@{ $title->{slangs} }[$i]) . " ";
+		if ($verbose) { $subs .= s_it(@{ $title->{sids} }[$i]) . " "; }
+	}
+	$subs =~ s/\s*$//;
+
+	print s_b($title->{title_number}) ."  length: " . s_bb($title->{length_s}) 
+		. $audio . $subs . "\n";
+}
+
+print "\nTo watch a title:\n";
+print " "      . s_b("mplayer")
+	."       " . s_b("dvd://") . s_bb("01")
+	."     "   . s_b("-alang") . " " . s_bb("en")
+	."  "      . s_b("-slang") . " " . s_bb("en/off") . "\n";
+print "To rip titles:\n";
+print " "        . s_b("undvd")
+	."         " . s_b("-t") . " " . s_bb("01,02,03")
+	."  "        . s_b("-a") . " " . s_bb("en")
+	."      "    . s_b("-s") . " " . s_bb("en/off") . "\n";

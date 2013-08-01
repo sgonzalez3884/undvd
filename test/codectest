@@ -1,0 +1,471 @@
+#!/usr/bin/env python
+#
+# Author: Martin Matusiak <numerodix@gmail.com>
+# Licensed under the GNU Public License, version 3.
+#
+# A helper script to test undvd on a range of combinations of codecs and
+# containers. Results are written to a report file (txt and svg).
+
+import os
+import shutil
+import subprocess
+import sys
+import time
+
+
+# definitely insane
+conts = ['asf', 'au', 'avi', 'dv', 'flv', 'ipod', 'mkv', 'mov', 'mpg', 'mp4',
+         'nut', 'ogm', 'rm', 'swf']
+acodecs = ['aac', 'ac3', 'flac', 'g726', 'libamr_nb', 'libamr_wb', 'mp2',
+           'mp3', 'roq_dpcm', 'sonic', 'sonicls', 'vorbis', 'wmav1', 'wmav2']
+vcodecs = ['asv1', 'asv2', 'dvvideo', 'ffv1', 'flv', 'h261', 'h263', 'h263p',
+           'h264', 'huffyuv', 'libtheora', 'ljpeg', 'mjpeg', 'mpeg1video',
+           'mpeg2video', 'mpeg4', 'msmpeg4', 'msmpeg4v2', 'roqvideo', 'rv10',
+           'snow', 'svq1', 'wmv1', 'wmv2', 'xvid']
+
+# downscaled for quick testing
+conts = ['mkv', 'mp4']
+vcodecs = ['xvid', 'h264']
+acodecs = ['mp3', 'aac',]
+
+# sane?
+conts = ['asf', 'avi', 'flv', 'mkv', 'mov', 'mp4', 'nut', 'ogm']
+acodecs = ['aac', 'ac3', 'mp3', 'vorbis']
+vcodecs = ['flv', 'h264', 'mpeg4', 'xvid']
+
+
+tool_name = os.path.basename(sys.argv[0])
+
+
+class test(object):
+    enc_error = 0
+    enc_failed = 1
+    play_failed = 2
+    ok = 3
+
+
+def write(s, ovr=False, end=False):
+    line_len = 79
+    s = s.ljust(line_len)
+    if end:
+        s += "\n"
+    if ovr:
+        s += "\r"
+    sys.stdout.write(s)
+    sys.stdout.flush()
+
+def invoke(args):
+    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    stdout = p.stdout.read()
+    ret = p.wait()
+    return (ret, stdout)
+
+def check_tools():
+    os.environ["TERM"] = ""
+    (ret, stdout) = invoke(['undvd', '--version'])
+    tools = {}
+    tools['undvd'] = stdout.split('\n')[0].split()[1]
+    for line in stdout.split('\n')[1:]:
+        for t in ['mplayer', 'mencoder', 'mp4creator', 'mkvmerge', 'ogmmerge']:
+            if t in line:
+                if '[*] %s' % t in line:
+                    tools[t] = line.split()[2]
+                else:
+                    tools[t] = None
+    return tools
+
+def run_test(source, title, start, end, keep, workdir, logfile, i, cont, acodec, vcodec):
+    # move to workdir
+    oldcwd = os.getcwd()
+    os.chdir(workdir)
+
+    # start timer
+    pre = time.time()
+
+    # run test
+    os.environ["TERM"] = ''
+
+    args = ['undvd'] + source + start + end
+    args.extend(['--title', title, '--audio', 'en'])
+    args.extend(['--cont', cont, '--vcodec', vcodec, '--acodec', acodec])
+
+    (_, enc_stdout) = invoke(args)
+    output_file = title + '.' + cont
+
+    # check return value
+    retvalue = test.enc_error
+    if enc_stdout.find('[ failed ]') > -1:
+        retvalue = test.enc_failed
+    elif enc_stdout.find('[ done ]') > -1:
+        retvalue = test.ok
+
+    # try playing
+    if retvalue == test.ok:
+        (play_ret, play_stdout) = invoke(
+            ['mplayer', '-ao', 'null', '-vo', 'null', '-frames', '0', output_file])
+        if play_ret > 0:
+            retvalue = test.play_failed
+
+    # keep the output
+    if keep and os.path.exists(output_file):
+        dest = os.path.join(workdir, '%s_%s_%s_%s_%s' %
+                            (tool_name, i, cont, vcodec, acodec))
+        logdir = os.path.join(workdir, 'logs')
+
+        if os.path.exists(dest): shutil.rmtree(dest)
+        os.makedirs(dest)
+
+        shutil.move(output_file, dest)
+        shutil.move(logdir, os.path.join(dest, os.path.split(logdir)[-1]))
+
+    # stop timer
+    dur = time.time() - pre
+
+    # restore cwd
+    os.chdir(oldcwd)
+
+    # write log
+    line = "%s\n%s%s\n\n" % (" ".join(args), enc_stdout, "time: %s" % dur)
+    open(logfile, 'a').write(line)
+
+    return (retvalue, dur)
+
+def run_suite(source, title, start, end, keep, workdir, cont, acodec, vcodec):
+    matrix = [[[None for a in acodecs] for v in vcodecs] for c in conts]
+    combs = len(conts) * len(acodecs) * len(vcodecs)
+
+    logfile = os.path.join(workdir, tool_name + '.log')
+    if os.path.exists(logfile): os.unlink(logfile)
+
+    cw = max([len(j) for j in conts])
+    vw = max([len(j) for j in vcodecs])
+    aw = max([len(j) for j in vcodecs])
+
+    i = 1
+    last_run = 0
+    cum = 0
+    for c in conts:
+        for v in vcodecs:
+            for a in acodecs:
+                s = "%s%s%s" % (c.ljust(cw+3), v.ljust(vw+3), a.ljust(aw+3))
+
+                cum_i = (int) (cum / 60)
+                last_i = (int) (last_run)
+                eta_i = (int) ((cum / i) * (combs - i) / 60)
+
+                prog_s = "%s/%s" % (i, combs)
+                last_s = "last: %ss" % last_i
+                cum_s = "cum: %smin" % cum_i
+                eta_s = "eta: %smin" % eta_i
+                stat = "  ".join([last_s, cum_s, eta_s])
+                write("%s   %s%s" % (s, prog_s.ljust(10), stat), ovr=True)
+
+                i_s = str(i).zfill(len(str(combs)))
+                (res, last_run) = run_test(source, title, start, end, keep,
+                                           workdir, logfile, i_s, c, a, v)
+                cum += last_run
+
+                res_s = "enc_error"
+                if res == test.ok:
+                    res_s = "ok"
+                elif res == test.play_failed:
+                    res_s = "play_failed"
+                elif res == test.enc_failed:
+                    res_s = "enc_failed"
+                write("%s   %s" % (s, res_s), end=True)
+
+                matrix[conts.index(c)][vcodecs.index(v)][acodecs.index(a)] = res
+
+                i += 1
+
+    return (matrix, cum)
+
+def get_report(matrix, cum, tools):
+    s = "# Generated with %s (time: %smin)\n\n" % (tool_name, int(cum/60))
+
+    s += "Tools detected:\n"
+    ts = tools.items() ; ts.sort()
+    for (k, v) in ts:
+        if not v:
+            v = "missing"
+        s += "+ %s %s\n" % (k, v)
+    s += "\n"
+
+    w = max( max([len(i) for i in conts+vcodecs+acodecs]), 11)
+    we = w + 2
+
+    def bar():
+        return "+%s+%s+%s+%s+\n" % ('-'*we, '-'*we, '-'*we, '-'*we)
+    def td(c, v, a, val):
+        return "| %s | %s | %s | %s |\n" %\
+                (c.ljust(w), v.ljust(w), a.ljust(w), val.ljust(w))
+
+    s += bar()
+    s += td("container", "vcodec", "acodec", "status")
+    s += bar()
+    for c in conts:
+        for v in vcodecs:
+            for a in acodecs:
+                val = matrix[conts.index(c)][vcodecs.index(v)][acodecs.index(a)]
+                val_s = "enc_error"
+                if val == test.ok:
+                    val_s = "ok"
+                elif val == test.enc_failed:
+                    val_s = "enc_failed"
+                elif val == test.play_failed:
+                    val_s = "play_failed"
+                s += td(c, v, a, val_s)
+    s += bar()
+
+    return s
+
+def get_svg(matrix, cum, tools):
+    def get_s(x, y, fpx, c, th=False, color=None, rot=False):
+        style = ''
+        if th:
+            style += ' font-weight: bold; font-family: sans-serif;'
+        if color:
+            style += ' fill: %s;' % color
+        rotate = ''
+        if rot:
+            rotate = '  transform="rotate(-15 %s %s)"' % (x, y)
+        s = '\n<text x="%s" y="%s" style="font-size: %spx;%s"%s>' %\
+                (x, y, fpx, style, rotate)
+        s += '\n%s' % c
+        s += '\n</text>'
+        return s
+
+    def get_fmt(c, color):
+        s = '<tspan style="fill: %s; font-weight: bold;">' % color
+        s += '\n%s' % c
+        s += '\n</tspan>'
+        return s
+
+    margin = 20
+    padding = 10
+
+    color_cont = "brown"
+    color_vcodec = "teal"
+    color_acodec = "black"
+    color_acodec_em = "maroon"
+
+    fpx = 10
+    fpa = int(fpx * (6/14.))
+    fpl = int(fpx * (12/14.))
+
+    x, y = margin, margin + (fpx + fpa)
+    x_span = x
+
+    s = ""
+
+    # write footer
+    header = "Container/codec test matrix"
+    s += get_s(x, y, 20, header, th=True)
+    y += (fpx + fpa) * 2
+    x_span = max(x_span, x + (fpx-6) * len(header))
+
+
+    # write table
+    x += padding
+    y += padding
+    orig_x, orig_y = x, y
+
+    # collect markers for layering
+    marks_red = [[None for v in [None]+vcodecs] for c in [None]+conts]
+    marks_blue = [[None for v in [None]+vcodecs] for c in [None]+conts]
+
+    cw = max([len(j) for j in conts])
+    vw = max([len(j) for j in vcodecs])
+    aw = max([len(j) for j in acodecs])
+
+    for (j, v) in enumerate([None] + vcodecs):
+        j -= 1
+
+        row_height = 0
+        for (i, c) in enumerate([None] + conts):
+            i -= 1
+
+            marks_red[i][j] = (x, y - fpx - fpa)
+
+            if i == -1 and j == -1:
+                pass
+                x += fpx * vw
+            elif i > -1 and j == -1:
+                s += get_s(x, y, fpx, conts[i], color=color_cont, th=True, rot=True)
+                x += fpx * aw
+            elif i == -1 and j > -1:
+                s += get_s(x, y+5, fpx, vcodecs[j], color=color_vcodec, th=True, rot=True)
+                x += fpx * vw
+            else:
+                local_y = y
+                for a in acodecs:
+                    val = matrix[conts.index(c)][vcodecs.index(v)][acodecs.index(a)]
+                    if val == test.ok or val == test.play_failed:
+
+                        color = color_acodec
+                        if val == test.play_failed:
+                            color = color_acodec_em
+                        s += get_s(x, local_y, fpx, a, color=color)
+
+                        if acodecs.index(a) < len(acodecs) - 1:
+                            local_y += fpx + fpa
+                        else:
+                            local_y += fpx + fpl
+                        row_height = max(local_y, row_height)
+
+                x += fpx * aw
+
+            marks_blue[i][j] = (x, row_height - fpx - fpa)
+
+        x_span = x + padding
+        x = orig_x
+        y = max(y + (fpx + fpl), row_height)
+
+    # write layers
+    l = ""
+    prev_gx = 0
+    for (pr, pb) in zip(marks_red[0::2], marks_blue[0::2]):
+        gx, gy = pr[-1]
+        zx, _ = pb[-2]
+        zy = max([j for (i,j) in [t[-2] for t in marks_blue]])
+        w, h = zx - gx, zy - gy
+        if gx > prev_gx: # preempt not understood bug
+            prev_gx = gx
+            l += '\n<rect x="%s" y="%s" width="%s" height="%s"' % (gx, gy, w-fpx, h)
+            l += ' fill="%s" stroke="%s"' % (color_cont, color_cont)
+            l += ' stroke-width="10" stroke-linejoin="round" opacity="0.1"/>'
+
+    for i in range(0, len(marks_red[0])):
+        if i % 2 == 0:
+            gx, gy = marks_red[-1][i]
+            zx, zy = marks_blue[-2][i]
+            w, h = zx - gx, zy - gy
+            if w > 0 and h > 0: # preempt not understood bug
+                l += '\n<rect x="%s" y="%s" width="%s" height="%s"' %\
+                        (gx, gy+fpa, w, h-fpx+fpa)
+                l += ' fill="%s" stroke="%s"' % (color_vcodec, color_vcodec)
+                l += ' stroke-width="10" stroke-linejoin="round" opacity="0.1"/>'
+
+
+    fpx = 12
+    fpa = int(fpx * (6/14.))
+    fpl = int(fpx * (12/14.))
+
+    y += padding + fpa
+    x -= padding
+
+    # write legend
+    c = get_fmt("this color", color_acodec)
+    s += get_s(x, y, fpx, "encoding&amp;playback test ok: in %s" % c)
+    y += (fpx + fpa) * 1
+    c = get_fmt("this color", color_acodec_em)
+    s += get_s(x, y, fpx, "playback test failed: in %s" % c)
+    y += (fpx + fpa) * 1
+    s += get_s(x, y, fpx, "encoding test failed: not shown")
+    y += (fpx + fpa) * 1
+
+    # write tools
+    y += (fpx + fpa) * 1
+    s += get_s(x, y, fpx, "Tools detected:")
+    y += (fpx + fpa) * 1
+    ts = tools.items(); ts.sort()
+    for (k, v) in ts:
+        color = "green"
+        if not v:
+            color = "red"
+            v = "missing"
+        s += get_s(x, y, fpx, "- %s %s" % (k, v), color=color)
+        y += fpx + fpa
+
+    # write footer
+    y += fpx
+    footer = "# Generated with %s (time: %smin)" % (tool_name, int(cum/60))
+    s += get_s(x, y, fpx, footer)
+    x_span = max(x_span, x + (fpx) * len(footer))
+
+
+    w, h = x_span + margin, y + margin
+
+    d = '<?xml version="1.0"?>'
+    d += '\n<svg height="%s" width="%s" xmlns="http://www.w3.org/2000/svg">' % (h, w)
+    d += '\n<g style="font-family: monospace;">'
+    d += '\n<rect x="0" y="0" height="%s" width="%s" fill="white" stroke="black"/>' % (h, w)
+    d += '\n' + l
+    d += '\n' + s
+    d += '\n</g>'
+    d += '\n</svg>'
+    return d
+
+def main(source, title, start, end, reportfile, keep, workdir):
+    tools = check_tools()
+
+    if not tools.get("mp4creator") and 'mp4' in conts: conts.remove('mp4')
+    if not tools.get("mkvmerge") and 'mkv' in conts: conts.remove('mkv')
+    if not tools.get("ogmmerge") and 'ogm' in conts: conts.remove('ogm')
+
+    (matrix, cum) = run_suite(source, title, start, end, keep, workdir, conts, acodecs, vcodecs)
+
+    report_s = get_report(matrix, cum, tools)
+    open(reportfile + '.txt', 'w').write(report_s)
+
+    svg_s = get_svg(matrix, cum, tools)
+    open(reportfile + '.svg', 'w').write(svg_s)
+
+
+
+if __name__ == "__main__":
+    from optparse import OptionParser
+    parser = OptionParser()
+    parser.add_option("-o", "", dest="filename",
+        help="write report to file", metavar="file")
+    parser.add_option("-t", "", dest="title",
+        help="title to rip", metavar="title")
+    parser.add_option("-d", "--dev", dest="dev",
+        help="dvd device to rip from", metavar="dev")
+    parser.add_option("-q", "--dir", dest="dir",
+        help="dvd directory to rip from", metavar="dir")
+    parser.add_option("-i", "--iso", dest="iso",
+        help="dvd iso image to rip from", metavar="iso")
+    parser.add_option("", "--start", dest="start",
+        help="start after this many seconds", metavar="start")
+    parser.add_option("-e", "--end", dest="end",
+        help="end after this many seconds", metavar="end")
+    parser.add_option("", "--keep", dest="keep", action="store_true",
+        help="keep files after ripping", metavar="keep")
+    parser.add_option("", "--tmpdir", dest="tmpdir",
+        help="directory to run in", metavar="tmpdir")
+    (opts, args) = parser.parse_args()
+
+    source = []
+    if opts.dev:
+        source = ['--dev', os.path.abspath(opts.dev), '--noclone']
+    elif opts.dir:
+        source = ['--dir', os.path.abspath(opts.dir)]
+    elif opts.iso:
+        source = ['--iso', os.path.abspath(opts.iso)]
+
+    title = '1'
+    if opts.title:
+        title = opts.title
+
+    start = ['--start', '0']
+    if opts.start:
+        start = ['--start', opts.start]
+
+    end = ['--end', '5']
+    if opts.end:
+        end = ['--end', opts.end]
+
+    keep = False
+    if opts.keep:
+        keep = True
+
+    workdir = "/tmp"
+    if opts.tmpdir:
+        workdir = os.path.abspath(opts.tmpdir)
+
+    if not opts.filename:
+        write("No output file given", end=True)
+        sys.exit(1)
+
+    main(source, title, start, end, opts.filename, keep, workdir)
