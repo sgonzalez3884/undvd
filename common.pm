@@ -1061,8 +1061,8 @@ sub run_encode {
 	my ($exit, $perc, $secs, $fps, $size, $ela, $eta);
 
 	while ((my $kid = waitpid($pid, WNOHANG)) != -1) {
-		sysread($reader, my $s, 1024*1024);
 		$exit = $? >> 8;
+		sysread($reader, my $s, 1024*1024);
 		print $fh_logfile $s;
 
 		$s = substr($s, length($s) - 1000);
@@ -1118,11 +1118,11 @@ sub remux_container {
 		}
 
 		sub post {
-			my ($root, $ext, $acodec, $vcodec) = @_;
+			my ($root, $ext, $acodec, $vcodec, $exit) = @_;
 
 			unlink "$root.$acodec";
 			unlink "$root.$vcodec";
-			unlink "$root.$ext";
+			unlink "$root.$ext" unless($exit != 0);
 		}
 
 		my $remux;
@@ -1141,9 +1141,9 @@ sub remux_container {
 
 				my @p = pre($root, $container, $ext, $acodec, $vcodec);
 				my @a = (@p, \@args1, \@args2, \@args3, \@args4, \@args5);
-				my ($out, $exit, $err) = run_agg(\@a, $logfile);
-				post($root, $ext, $acodec, $vcodec);
-				return ($out, $exit, $err);
+				my ($exit) = run_agg(\@a, $logfile);
+				post($root, $ext, $acodec, $vcodec, $exit);
+				return ($exit);
 			};
 		} elsif ($container eq "mkv") {
 			$remux = sub {
@@ -1153,9 +1153,9 @@ sub remux_container {
 					"$root.$ext");
 
 				my @a = (\@args);
-				my ($out, $exit, $err) = run_agg(\@a, $logfile);
-				unlink("$root.$ext");
-				return ($out, $exit, $err);
+				my ($exit) = run_agg(\@a, $logfile);
+				unlink("$root.$ext") unless($exit != 0);
+				return ($exit);
 			};
 		} elsif ($container eq "ogm") {
 			$remux = sub {
@@ -1166,8 +1166,8 @@ sub remux_container {
 
 				my @a = (\@args);
 				my ($out, $exit, $err) = run_agg(\@a, $logfile);
-				unlink("$root.$ext");
-				return ($out, $exit, $err);
+				unlink("$root.$ext") unless($exit != 0);
+				return ($exit);
 			};
 		}
 
