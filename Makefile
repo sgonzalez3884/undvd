@@ -39,3 +39,28 @@ install:
 	ln -s ${SHARED_CHROOT}/scandvd ${BIN_CHROOT}
 	ln -s ${SHARED_CHROOT}/undvd ${BIN_CHROOT}
 	ln -s ${SHARED_CHROOT}/vidstat ${BIN_CHROOT}
+
+uninstall:
+	rm -f -v -- ${SHARED_CHROOT}/colors.pm
+	rm -f -v -- ${SHARED_CHROOT}/common.pm
+	rm -f -v -- ${SHARED_CHROOT}/encvid
+	rm -f -v -- ${SHARED_CHROOT}/scandvd
+	rm -f -v -- ${SHARED_CHROOT}/undvd
+	rm -f -v -- ${SHARED_CHROOT}/vidstat
+	rm -f -v -- ${SHARED_CHROOT}/test/codectest
+	- rmdir -v -- ${SHARED_CHROOT}/test
+	- rmdir -v -- ${SHARED_CHROOT}
+
+	rm -f -v -- ${DOC_CHROOT}/userguide.html
+	rm -f -v -- ${DOC_CHROOT}/codectest.svg
+	rm -f -v -- ${DOC_CHROOT}/codectest.txt
+	rm -f -v -- ${DOC_CHROOT}/codectest_all.svg
+	rm -f -v -- ${DOC_CHROOT}/codectest_all.txt
+	rm -f -v -- ${DOC_CHROOT}/Changelog
+	- rmdir -v -- ${DOC_CHROOT}
+
+	rm -f -v -- ${BIN_CHROOT}/encvid
+	rm -f -v -- ${BIN_CHROOT}/scandvd
+	rm -f -v -- ${BIN_CHROOT}/undvd
+	rm -f -v -- ${BIN_CHROOT}/vidstat
+	- rmdir -v -- ${BIN_CHROOT}
